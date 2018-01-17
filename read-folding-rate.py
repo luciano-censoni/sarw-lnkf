@@ -51,7 +51,7 @@ try: monomer = float(argv[7])
 except: monomer = 8.0
 
 run = lambda x: check_output(x, shell=True)
-path = lambda st: "./no-fragment/"+st
+path = lambda st: "./structures/"+st
 
 
 if _parse_data:
