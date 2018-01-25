@@ -83,9 +83,7 @@ try:
   monomer = float(argv[7])
 except:
   monomer = float(raw_input("Input monomer diameter for information calculation: "))
-monomer14 = monomer**1.4 #numerical estimates suggest values between 11.5 for adjacent residues
-                     #and 7.4 for very long loops (~300 steps) (default is 8.0)
-                     #CURRENTLY UNUSED
+monomer14 = monomer**1.4 #CURRENTLY UNUSED
 
 FILTER = ("filter" in argv)
 
