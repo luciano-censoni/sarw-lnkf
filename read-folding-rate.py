@@ -359,7 +359,7 @@ if _plot:
   comulti_boot = []
   infmulti_boot = []
   finfmulti_boot = []
-  bootstrapN = 1000000
+  bootstrapN = 200 #1000000
   for k in range(bootstrapN):
     write("k = "+ str(k))
     temp_co = []
@@ -492,9 +492,14 @@ if _plot:
                      map(lambda x, y: x[int(0.975*bootstrapN)-1] - y, [finf_boot, finftwo_boot, finfmulti_boot], final_rho_inf)]
   print "finf range:", conf_range_finf
 
-  rects1 = ax.bar(barindices, final_rho_co, barwidth, color='b', yerr=conf_range_co, error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2) )
-  rects2 = ax.bar( [x+barwidth for x in barindices], final_rho_inf, barwidth, color='y', yerr=conf_range_inf, hatch="////", error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2) )
-  rects3 = ax.bar( [x+(2*barwidth) for x in barindices], final_rho_finf, barwidth, color='r', yerr=conf_range_finf, hatch="xxxx", error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2) )
+  #actual plotting
+  rects1      = ax.bar(barindices, final_rho_co, barwidth, color='b', yerr=conf_range_co, edgecolor="black", error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2) )
+
+  rects2      = ax.bar( [x+barwidth for x in barindices], final_rho_inf, barwidth, color='y', yerr=conf_range_inf, error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2) )
+  rects2hatch = ax.bar( [x+barwidth for x in barindices], final_rho_inf, barwidth, color='y', hatch = "////", fill=False, zorder=2 )
+
+  rects3 = ax.bar( [x+(2*barwidth) for x in barindices], final_rho_finf, barwidth, color='r', yerr=conf_range_finf, error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2) )
+  rects3hatch = ax.bar( [x+(2*barwidth) for x in barindices], final_rho_finf, barwidth, color='r', hatch="xxxx", fill=False, zorder=2)
 
   ax.set_ylabel("Corr. Coefficient")
   ax.set_xticks([x+barwidth for x in barindices])
