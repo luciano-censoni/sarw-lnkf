@@ -359,7 +359,7 @@ if _plot:
   comulti_boot = []
   infmulti_boot = []
   finfmulti_boot = []
-  bootstrapN = 200 #1000000
+  bootstrapN = 1000000
   for k in range(bootstrapN):
     write("k = "+ str(k))
     temp_co = []
