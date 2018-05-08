@@ -109,7 +109,7 @@ except: monomer = 8.0
 run = lambda x: check_output(x, shell=True)
 path = lambda st: "./structures/"+st
 
-
+exclude_log = open("excluded_proteins.log",'w')
 if _parse_data:
   #will parse and save
   with open("proteins_17_Dec_14.csv") as f: fratedata = f.readlines()
@@ -142,12 +142,12 @@ if _parse_data:
       thisp['consist_length'] = True
       if thisp['frgstart'] != "NA":
         if thisp['length'] != int(thisp['frgend']) - int(thisp['frgstart']) + 1:
-          #print "INCONSISTENT LENGTH!"
           thisp['consist_length'] = False
       print 'Finished parsing protein', thisp['id']
       data.append(deepcopy(thisp))
     except:
       print "Failed parsing protein", prot
+      exclude_log.write("Excluding "+prot+" due to missing information.\n") #1RA9 has no folding rate!
       continue
 
   del fratedata, thisp
@@ -156,17 +156,25 @@ else:
   #just load json data
   with open("formatted-data.json") as f: data = load(f)
 
-#filter out problematic pdb files
+#filter out problematic pdb files, dump ids to file
 filt_data = []
 if _fetch_pdb: mkdir(path(''))
 for prot in data:
-  if not prot['consist_length']: continue
-  if prot['frgstart'] != "NA": continue #this second if probably contains the previous
-  if prot['id'] in ['1AVZ', '1B9C', '1FMK', '1JON', '1L8W', '1M9S', '2BLM']: continue #bad pdb files
+  if not prot['consist_length']:
+    exclude_log.write("Excluding "+prot['id']+" due to inconsistent fragment lengths.\n")
+    continue
+  if prot['frgstart'] != "NA": #this second test probably contains the previous
+    exclude_log.write("Excluding "+prot['id']+" due to inconsistent fragment lengths.\n")
+    continue
+  if prot['id'] in ['1AVZ', '1B9C', '1FMK', '1JON', '1L8W', '1M9S', '2BLM']:
+    exclude_log.write("Excluding "+prot['id']+" due to unexplained gaps in the chain.\n")
+    continue #bad pdb files
   #1avz: unexplained gap 148-179   #1b9c: unexplained gap 64-66-68   #1fmk: unexplained gap 409-424
-  #1jon: unexplained gap 301-307   #l8w: unexplained gap 92-113   #1m9s: unexplained gap 319-391
+  #1jon: unexplained gap 301-307   #1l8w: unexplained gap 92-113     #1m9s: unexplained gap 319-391
   #2blm: unexplained gap 83-86
-  if prot['id'] in ['1CUN','1DIV','1HRC','1LMB','1PGB','1PHP','1QOP','1RA9','3CHY']: continue #duplicated in the database
+  if prot['id'] in ['1CUN','1DIV','1HRC','1PGB','1PHP','1QOP']:
+    exclude_log.write("Excluding "+prot['id']+" due to duplication in the data set.\n")
+    continue #duplicated in the database
 
   filt_data.append(deepcopy(prot))
   if _fetch_pdb:
@@ -174,8 +182,16 @@ for prot in data:
     run("gunzip pdb"+prot['id'].lower()+".ent.gz")
     rename("pdb"+prot['id'].lower()+".ent", path(prot['id'])+".pdb")
     #automated processing for proteins with alternate conformations and leading sequences:
-    #1PNJ, 1BF4, 1BNZ, 1URN (leading sequences)
+    #1LMB, 1PNJ, 1BF4, 1BNZ, 1URN (leading sequences)
     #1YCC, 1YEA (leading sequences and single heteroresidue at position 72)
+    if prot['id'] == '1LMB':
+      for line_number, line in enumerate(fileinput.input(path("1LMB.pdb"), inplace=1)):
+        if line_number == 0:
+          sys.stdout.write("REMARK modified protein file with leading sequences removed\n")
+        elif line_number < 1905: continue
+        else: #from line 1905 onwards
+          sys.stdout.write(line)
+
     if prot['id'] == '1PNJ':
       for line_number, line in enumerate(fileinput.input(path("1PNJ.pdb"), inplace=1)):
         if line_number == 0:
@@ -232,6 +248,7 @@ for prot in data:
             sys.stdout.write( line[6:])
           else: sys.stdout.write(line)
 #end for prot in data
+exclude_log.close() #may need to reopen later on
 
 del data #this should probably be dumped one more time
 files = run("ls "+path("")+" | grep pdb").split()
@@ -240,6 +257,7 @@ for prot in filt_data: assert prot['id']+".pdb" in files
 del files
 
 if _calc_info:
+  exclude_log = open("excluded_proteins.log", 'a') #appending, in this case
   to_remove = []
   call("ls " + path("*.dat") + " | xargs rm", shell=True) #clean-up!
 
@@ -279,7 +297,7 @@ if _calc_info:
     assert "frac" in info[0]
     del info[0:2] #legacy; frac = 1.0 always
     tot_inf = sum( map( lambda item: float(item.split()[-1]), info) ) / len(info)
-    print "avg information for", pid, "=", tot_inf, '\n'
+    print "avg nofilter information for", pid, "=", tot_inf, '\n'
     linha['avinf'] = tot_inf
 
     with open(path(pid)+"-filter.sorted.dat") as info_f: info = info_f.readlines()
@@ -288,7 +306,7 @@ if _calc_info:
     linha['contact_frac'] = float( info[0].split()[1].rpartition("=")[2] )
     del info[0:2]
     tot_inf = sum( map( lambda item: float(item.split()[-1]), info) ) / len(info)
-    print "avg information for", pid, "=", tot_inf, '\n'
+    print "avg filter information for", pid, "=", tot_inf, '\n'
     linha['favinf'] = tot_inf
 
   print "removing:"
@@ -297,11 +315,15 @@ if _calc_info:
     for prot in filt_data:
       if prot['id'] == item:
         filt_data.remove( prot)
-        print "removido", item
+        exclude_log.write("Excluding "+prot['id']+" due to failure in information calculation.\n")
+        print "removed", item
         break #breaks out of for prot
 
   print "Final size:", len(filt_data)
   with open("filtered-data.json","w") as f: dump(filt_data, f)
+  exclude_log.close() #nothing more to exclude
+  with open("included_proteins.log",'w') as include_log:
+    for prot in filt_data: include_log.write("Including "+prot['id']+".\n")
   print "Information data saved."
 else: #do not calculate information
   with open("filtered-data.json") as f: filt_data = load(f)
