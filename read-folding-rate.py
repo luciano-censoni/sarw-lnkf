@@ -83,6 +83,7 @@ _fetch_pdb  = ("fetch"  in argv)
 _parse_data = ("parse"  in argv)
 _calc_info  = ("calc"   in argv)
 _plot       = ("plot"   in argv)
+_split      = ("split"  in argv)
 
 
 try: min_represent = int(argv[1])
@@ -104,7 +105,7 @@ try: padding  = float(argv[6])
 except: padding = 0.01
 
 try: monomer = float(argv[7])
-except: monomer = 8.0
+except: monomer = 8.0  #legacy; currently unused but must be provided
 
 run = lambda x: check_output(x, shell=True)
 path = lambda st: "./structures/"+st
@@ -352,14 +353,14 @@ frmulti   = []
 infmulti  = []
 finfmulti = []
 
-tworef = []
+#tworef = [] #presently not needed
 for i in range(len(ftype)):
   if ftype[i] == "Two":
     cotwo.append(  co[i] )
     inftwo.append( inf[i] )
     finftwo.append( finf[i] )
     frtwo.append(  fr[i] )
-    tworef.append( i)
+    #tworef.append( i)
   else: #"Multi"
     comulti.append(  co[i] )
     infmulti.append( inf[i] )
@@ -381,7 +382,7 @@ if _plot:
   comulti_boot = []
   infmulti_boot = []
   finfmulti_boot = []
-  bootstrapN = 1000000
+  bootstrapN = 1000 #1000000
   for k in range(bootstrapN):
     write("k = "+ str(k))
     temp_co = []
@@ -592,10 +593,47 @@ print "DELTA I"
 print "ALPHA:", pearsonr(aresid, gain)[0], "BETA:", pearsonr(bresid, gain)[0]
 print "RELATIVE:"
 print "ALPHA:", pearsonr(aresid, gainr)[0], "BETA:", pearsonr(bresid, gainr)[0]
-
-
 #pp.subplot(121)
 #pp.scatter(aresid, gain)
 #pp.subplot(122)
 #pp.scatter(bresid, gain)
 #pp.show()
+
+if _split:
+  print "Checking parameter fitting by splitting data set..."
+  #cotwo, frtwo, inftwo, finftwo
+  #comulti, frmulti, infmulti, finfmulti
+  from random import seed, shuffle
+
+  split_f = open("dataset_split-"+str(redund_dist)+"-"+str(range_dmax)+".log",'w')
+  test_seed = 239
+  split_f.write("seed = "+str(test_seed)+"\n")
+  Nsplit = int(0.7 * len(co))
+  split_f.write("Nsplit = "+str(Nsplit)+"\n")
+
+  for i in range(5): #number of repetitions
+    split_f.write("REPETITION "+str(i+1)+"\n")
+    sp_co   = co[:]
+    sp_fr   = fr[:]
+    sp_inf  = inf[:]
+    sp_finf = finf[:]
+    for item in [sp_co, sp_fr, sp_inf, sp_finf]:
+      seed(test_seed)
+      shuffle(item)
+
+    split_f.write( "UNSPLIT CO:   "+str(final_rho_co[0]                                    )+"\n" )
+    split_f.write( "TRAIN SET CO: "+str(pearsonr( sp_co[:Nsplit],   sp_fr[:Nsplit])[0]*-1.0)+"\n" )
+    split_f.write( "TEST SET CO:  "+str(pearsonr( sp_co[Nsplit:],   sp_fr[Nsplit:])[0]*-1.0)+"\n" )
+    split_f.write('\n')
+    split_f.write( "UNSPLIT INF:   "+str(final_rho_inf[0]                                   )+"\n" )
+    split_f.write( "TRAIN SET INF: "+str(pearsonr( sp_inf[:Nsplit],  sp_fr[:Nsplit])[0]*-1.0)+"\n" )
+    split_f.write( "TEST SET INF:  "+str(pearsonr( sp_inf[Nsplit:],  sp_fr[Nsplit:])[0]*-1.0)+"\n" )
+    split_f.write('\n')
+    split_f.write( "UNSPLIT FINF:   "+str(final_rho_finf[0]                                  )+"\n")
+    split_f.write( "TRAIN SET FINF: "+str(pearsonr( sp_finf[:Nsplit], sp_fr[:Nsplit])[0]*-1.0)+"\n")
+    split_f.write( "TEST SET FINF:  "+str(pearsonr( sp_finf[Nsplit:], sp_fr[Nsplit:])[0]*-1.0)+"\n")
+    split_f.write('\n')
+
+    test_seed += 1
+  split_f.close()
+print "Done."
