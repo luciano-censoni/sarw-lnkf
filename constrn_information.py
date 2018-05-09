@@ -204,7 +204,7 @@ if FILTER:
         current_len -= 1
         i -= 1
         break
-    #end while
+  #end while
 
   resrepresent = dict( Counter(                                         #count
                    map( lambda atom: residues[atom],                    #transform

@@ -76,7 +76,7 @@ pp.rcParams.update({'font.size': 18})
 
 
 #ugly hack, I know
-if len(argv) == 1: argv = ['read-folding-rate.py', 'None', '0.0', '9.5', '8', 'None', '0.01', '8.0', 'fetch', 'parse', 'calc', 'plot']
+if len(argv) == 1: argv = ['read-folding-rate.py', 'None', '0.0', '9.5', '8', 'None', '0.01', '8.0', '1000000', 'fetch', 'parse', 'calc', 'plot', 'split']
 
 
 _fetch_pdb  = ("fetch"  in argv)
@@ -106,6 +106,9 @@ except: padding = 0.01
 
 try: monomer = float(argv[7])
 except: monomer = 8.0  #legacy; currently unused but must be provided
+
+try: bootstrapN = int(argv[8])
+except: bootstrapN = 1000000
 
 run = lambda x: check_output(x, shell=True)
 path = lambda st: "./structures/"+st
@@ -300,6 +303,7 @@ if _calc_info:
     tot_inf = sum( map( lambda item: float(item.split()[-1]), info) ) / len(info)
     print "avg nofilter information for", pid, "=", tot_inf, '\n'
     linha['avinf'] = tot_inf
+    linha['ninf'] = len(info)
 
     with open(path(pid)+"-filter.sorted.dat") as info_f: info = info_f.readlines()
     assert "frac" in info[0]
@@ -308,7 +312,8 @@ if _calc_info:
     del info[0:2]
     tot_inf = sum( map( lambda item: float(item.split()[-1]), info) ) / len(info)
     print "avg filter information for", pid, "=", tot_inf, '\n'
-    linha['favinf'] = tot_inf
+    linha['avfinf'] = tot_inf
+    linha['nfinf']  = len(info)
 
   print "removing:"
   print to_remove
@@ -334,15 +339,16 @@ print "Calculating correlations."
 from scipy.stats import pearsonr
 
 
-ftype  = map( lambda x: x['ftype'],        filt_data)
-co     = map( lambda x: x['corder'],       filt_data)
-fr     = map( lambda x: x['frate'],        filt_data)
-inf    = map( lambda x: x['avinf'],        filt_data)
-finf   = map( lambda x: x['favinf'],       filt_data)
-rfrac  = map( lambda x: x['restr_frac'],   filt_data)
-cfrac  = map( lambda x: x['contact_frac'], filt_data)
-aresid = map( lambda x: x['aresid'],       filt_data)
-bresid = map( lambda x: x['bresid'],       filt_data)
+ftype   = map( lambda x: x['ftype'],           filt_data)
+co      = map( lambda x: x['corder'],          filt_data)
+fr      = map( lambda x: x['frate'],           filt_data)
+inf     = map( lambda x: x['avinf'],           filt_data)
+finf    = map( lambda x: x['avfinf'],          filt_data)
+rfrac   = map( lambda x: x['restr_frac'],      filt_data)
+cfrac   = map( lambda x: x['contact_frac'],    filt_data)
+aresid  = map( lambda x: x['aresid'],          filt_data)
+bresid  = map( lambda x: x['bresid'],          filt_data)
+
 
 cotwo     = []
 frtwo     = []
@@ -382,7 +388,6 @@ if _plot:
   comulti_boot = []
   infmulti_boot = []
   finfmulti_boot = []
-  bootstrapN = 1000 #1000000
   for k in range(bootstrapN):
     write("k = "+ str(k))
     temp_co = []
@@ -589,10 +594,9 @@ for i in range(len(inf)):
   gainr.append( (finf[i] - inf[i]) /inf[i] )
 
 
-print "DELTA I"
-print "ALPHA:", pearsonr(aresid, gain)[0], "BETA:", pearsonr(bresid, gain)[0]
-print "RELATIVE:"
-print "ALPHA:", pearsonr(aresid, gainr)[0], "BETA:", pearsonr(bresid, gainr)[0]
+print "delta I;  alpha:", pearsonr(aresid, gain)[0], "beta:", pearsonr(bresid, gain)[0]
+#print "relative; alpha:", pearsonr(aresid, gainr)[0], "beta:", pearsonr(bresid, gainr)[0]
+
 #pp.subplot(121)
 #pp.scatter(aresid, gain)
 #pp.subplot(122)
@@ -636,4 +640,10 @@ if _split:
 
     test_seed += 1
   split_f.close()
+
+print 100.0* rfrac/cfrac, "percent of pairs are contacts"
+print "percent of pairs considered    =", 100.0* rfrac
+print "percent of contacts considered =", 100.0* cfrac
+
 print "Done."
+
