@@ -521,12 +521,12 @@ if _plot:
   print "finf range:", conf_range_finf
 
   #actual plotting
-  rects1      = ax.bar(barindices, final_rho_co, barwidth, color='b', yerr=conf_range_co, edgecolor="black", error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2) )
+  rects1      = ax.bar(barindices, final_rho_co, barwidth, color='b', yerr=conf_range_co, edgecolor="black", error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2, zorder=4), zorder=2 )
 
-  rects2      = ax.bar( [x+barwidth for x in barindices], final_rho_inf, barwidth, color='y', yerr=conf_range_inf, error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2) )
+  rects2      = ax.bar( [x+barwidth for x in barindices], final_rho_inf, barwidth, color='y', yerr=conf_range_inf, error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2, zorder=4), zorder=2 )
   rects2hatch = ax.bar( [x+barwidth for x in barindices], final_rho_inf, barwidth, color='y', hatch = "////", fill=False, zorder=2 )
 
-  rects3 = ax.bar( [x+(2*barwidth) for x in barindices], final_rho_finf, barwidth, color='r', yerr=conf_range_finf, error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2) )
+  rects3 = ax.bar( [x+(2*barwidth) for x in barindices], final_rho_finf, barwidth, color='r', yerr=conf_range_finf, error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2, zorder=4), zorder=2 )
   rects3hatch = ax.bar( [x+(2*barwidth) for x in barindices], final_rho_finf, barwidth, color='r', hatch="xxxx", fill=False, zorder=2)
 
   ax.set_ylabel("Corr. Coefficient")
@@ -534,7 +534,7 @@ if _plot:
   ax.set_xticklabels(("Full Set", "Two-state", "Multistate"))
   ax.set_xlim((1.0-0.2, 3.0+3.0*barwidth+0.2))
   ax.legend((rects1[0], rects2[0], rects3[0]), ("CO", "I", "I$_r$"), loc='lower left')
-  pp.grid()
+  pp.grid(zorder=1)
   pp.savefig("barchart-both.pdf"); pp.clf()
 #end if _plot
 
@@ -564,12 +564,12 @@ if _plot:
   _ = pp.figure(figsize=(6,6))
   pp.rcParams.update({'font.size': 18})
   ax = pp.subplot(111)
-  pp.scatter(finftwo, frtwo, color="r", marker="o")
-  pp.scatter(finfmulti, frmulti, color="b", marker="^")
+  pp.scatter(finftwo, frtwo, color="r", marker="o", zorder=2)
+  pp.scatter(finfmulti, frmulti, color="b", marker="^", zorder=2)
   pp.xlabel("Red. Topological Information")
   pp.ylabel("$ln (k_f)$")
-  pp.grid()
-  ax.yaxis.set_label_coords(-0.08, 0.5)
+  pp.grid(zorder=1)
+  ax.yaxis.set_label_coords(-0.105, 0.5)
   pp.savefig("scatterplot-filter.pdf"); pp.clf()
 
   pp.close("all")
