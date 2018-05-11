@@ -111,9 +111,21 @@ try: bootstrapN = int(argv[8])
 except: bootstrapN = 1000000
 
 run = lambda x: check_output(x, shell=True)
-path = lambda st: "./structures/"+st
+path =         lambda st: "./structures/"+st
+inc_exc_path = lambda st: "./included-proteins/"+st
+readme_string = """#Included/Excluded Protein Lists
+This directory contains the lists of proteins which are included and excluded in the correlation analysis, along with justifications where necessary."""
 
-exclude_log = open("excluded_proteins.log",'w')
+
+#ENTRY POINT
+try:
+  mkdir(inc_exc_path(""))
+except OSError:
+  pass #directory already exists
+with open(inc_exc_path("README.md"), 'w') as readme_file:
+  readme_file.write(readme_string)
+
+exclude_log = open(inc_exc_path("excluded_proteins.log"),'w')
 if _parse_data:
   #will parse and save
   with open("proteins_17_Dec_14.csv") as f: fratedata = f.readlines()
@@ -261,7 +273,7 @@ for prot in filt_data: assert prot['id']+".pdb" in files
 del files
 
 if _calc_info:
-  exclude_log = open("excluded_proteins.log", 'a') #appending, in this case
+  exclude_log = open(inc_exc_path("excluded_proteins.log"), 'a') #appending, in this case
   to_remove = []
   call("ls " + path("*.dat") + " | xargs rm", shell=True) #clean-up!
 
@@ -328,7 +340,7 @@ if _calc_info:
   print "Final size:", len(filt_data)
   with open("filtered-data.json","w") as f: dump(filt_data, f)
   exclude_log.close() #nothing more to exclude
-  with open("included_proteins.log",'w') as include_log:
+  with open(inc_exc_path("included_proteins.log"),'w') as include_log:
     for prot in filt_data: include_log.write("Including "+prot['id']+".\n")
   print "Information data saved."
 else: #do not calculate information
