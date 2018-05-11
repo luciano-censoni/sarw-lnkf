@@ -1,3 +1,4 @@
 structures/
+dataset-split/
 *.pdf
 *.json
