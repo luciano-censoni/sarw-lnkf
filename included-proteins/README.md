@@ -1,2 +1,2 @@
 # Included/Excluded Protein Lists
-This directory contains the lists of proteins which are included and excluded in the correlation analysis, along with justifications where necessary.
+This directory contains the lists of proteins which are included in and excluded from the correlation analyses, along with justifications where necessary.

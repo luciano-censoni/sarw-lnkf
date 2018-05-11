@@ -114,7 +114,7 @@ run = lambda x: check_output(x, shell=True)
 path =         lambda st: "./structures/"+st
 inc_exc_path = lambda st: "./included-proteins/"+st
 readme_string = r"""# Included/Excluded Protein Lists
-This directory contains the lists of proteins which are included and excluded in the correlation analysis, along with justifications where necessary."""
+This directory contains the lists of proteins which are included in and excluded from the correlation analyses, along with justifications where necessary."""
 
 
 #ENTRY POINT
@@ -533,13 +533,11 @@ if _plot:
   print "finf range:", conf_range_finf
 
   #actual plotting
-  rects1      = ax.bar(barindices, final_rho_co, barwidth, color='b', yerr=conf_range_co, edgecolor="black", error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2, zorder=4), zorder=2 )
+  rects1 = ax.bar(barindices,                            final_rho_co,   barwidth, color='white',     yerr=conf_range_co,  edgecolor="black", error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2, zorder=4), zorder=2 )
 
-  rects2      = ax.bar( [x+barwidth for x in barindices], final_rho_inf, barwidth, color='y', yerr=conf_range_inf, error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2, zorder=4), zorder=2 )
-  rects2hatch = ax.bar( [x+barwidth for x in barindices], final_rho_inf, barwidth, color='y', hatch = "////", fill=False, zorder=2 )
+  rects2 = ax.bar( [x+barwidth for x in barindices],     final_rho_inf,  barwidth, color='lightgrey', yerr=conf_range_inf, edgecolor="black", error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2, zorder=4), zorder=2 )
 
-  rects3 = ax.bar( [x+(2*barwidth) for x in barindices], final_rho_finf, barwidth, color='r', yerr=conf_range_finf, error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2, zorder=4), zorder=2 )
-  rects3hatch = ax.bar( [x+(2*barwidth) for x in barindices], final_rho_finf, barwidth, color='r', hatch="xxxx", fill=False, zorder=2)
+  rects3 = ax.bar( [x+(2*barwidth) for x in barindices], final_rho_finf, barwidth, color='darkgrey',  yerr=conf_range_finf, edgecolor="black", error_kw=dict(ecolor='k', lw=2, capsize=5, capthick=2, zorder=4), zorder=2, hatch="////" )
 
   ax.set_ylabel("Corr. Coefficient")
   ax.set_xticks([x+barwidth for x in barindices])
