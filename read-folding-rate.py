@@ -113,7 +113,7 @@ except: bootstrapN = 1000000
 run = lambda x: check_output(x, shell=True)
 path =         lambda st: "./structures/"+st
 inc_exc_path = lambda st: "./included-proteins/"+st
-readme_string = """#Included/Excluded Protein Lists
+readme_string = r"""# Included/Excluded Protein Lists
 This directory contains the lists of proteins which are included and excluded in the correlation analysis, along with justifications where necessary."""
 
 
